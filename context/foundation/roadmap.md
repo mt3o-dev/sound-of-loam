@@ -44,7 +44,7 @@ feel right, nothing downstream matters.
 | S-09 | generative-visuals       | see a generative visual layer evolve with the sound             | S-01                 | FR-030                                | proposed |
 | S-07 | environmental-signals    | have location/time (sun) + weather bias the sound               | S-01, S-02           | FR-014, FR-015                        | proposed |
 | S-08 | cat-signals              | have a cat's presence/purr/meow bias the sound                  | S-02                 | FR-016                                | blocked  |
-| F-01 | persistence-backend      | (foundation) app can read/write persistent storage              | —                    | Access Control, NFR (self-contained file) | blocked  |
+| F-01 | persistence-backend      | (foundation) app can read/write persistent storage (Cloudflare D1) | —                | Access Control, NFR (self-contained file) | done     |
 | F-02 | email-auth               | (foundation) email login + sessions in place                    | F-01                 | FR-024, Access Control                | proposed |
 | S-05 | accounts-and-cloud-save  | sign in via email and save/own tracks in an account             | F-01, F-02, S-03     | FR-024, FR-020                        | proposed |
 | F-03 | cloudflare-deploy        | (foundation) app deploys to a public URL                        | —                    | NFR (public link plays)               | proposed |
@@ -272,3 +272,9 @@ exist and do NOT re-scaffold them.
   scale-locked coherence, layered voices, entry-gesture, seed-driven state, macro + pointer
   nudges. Verified headless (zero audio-file requests). Change summary: `[node:3e89baaa]`
   (dormant — promote to keep in live recall). Next slice (S-02) `parent_refs`: `3e89baaa`.
+- **F-01: (foundation) app can read/write persistent storage** — Archived 2026-08-01 →
+  `context/archive/persistence-backend/`. Cloudflare D1 (amended from MyDevil): adapter +
+  binding + schema (users/tracks/shares, shares = self-contained snapshot) + typed data-access
+  module + smoke endpoint. Verified on the wrangler-dev worker; instrument stays static.
+  Remote provisioning + deploy remain for F-03. Change summary `[node:9078c137]` (dormant —
+  promote). Unlocks F-02, S-05, S-06.
