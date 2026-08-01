@@ -37,7 +37,7 @@ feel right, nothing downstream matters.
 
 | ID   | Change ID                | Outcome (user can …)                                            | Prerequisites        | PRD refs                              | Status   |
 | ---- | ------------------------ | -------------------------------------------------------------- | -------------------- | ------------------------------------- | -------- |
-| S-01 | synth-core-instrument    | hear self-evolving synthesized sound + nudge it (macro+pointer) | —                    | US-01, FR-001, FR-002, FR-003, FR-010, FR-025 | ready    |
+| S-01 | synth-core-instrument    | hear self-evolving synthesized sound + nudge it (macro+pointer) | —                    | US-01, FR-001, FR-002, FR-003, FR-010, FR-025 | done     |
 | S-02 | nudge-and-sensors        | shape it via X-Y pad, presets, perturb + motion/mic/time/light  | S-01                 | FR-004, FR-005, FR-006, FR-011, FR-012, FR-013 | proposed |
 | S-03 | save-load-state-file     | save system state to a file and reload it (local, no account)   | S-01                 | FR-020, FR-021                        | proposed |
 | S-04 | mp3-export               | download the soundscape as MP3 (render + live capture)          | S-01                 | FR-022, FR-023                        | proposed |
@@ -267,4 +267,8 @@ exist and do NOT re-scaffold them.
 
 ## Done
 
-(Empty on first generation. `/10x-archive` records closed items here.)
+- **S-01: user hears a self-evolving synthesized soundscape and can bias it** — Archived
+  2026-08-01 → `context/archive/synth-core-instrument/`. The north star shipped: OU engine,
+  scale-locked coherence, layered voices, entry-gesture, seed-driven state, macro + pointer
+  nudges. Verified headless (zero audio-file requests). Change summary: `[node:3e89baaa]`
+  (dormant — promote to keep in live recall). Next slice (S-02) `parent_refs`: `3e89baaa`.
