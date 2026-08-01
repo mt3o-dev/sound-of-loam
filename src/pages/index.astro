@@ -1,0 +1,10 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SynthCore from '../components/SynthCore.svelte';
+---
+
+<Layout>
+	<main class="flex min-h-dvh items-center justify-center">
+		<SynthCore client:only="svelte" />
+	</main>
+</Layout>
