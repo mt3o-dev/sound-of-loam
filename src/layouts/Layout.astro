@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Sound of Loam</title>
+		<meta
+			name="description"
+			content="A generative ambient soundscape instrument — synthesized live in the browser, tended not played."
+		/>
+	</head>
+	<body class="min-h-dvh bg-neutral-950 text-neutral-100 antialiased">
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		min-height: 100%;
+	}
+</style>
