@@ -2,6 +2,7 @@ context/memory-graph.db*
 .gw-scratch/
 .serena/
 .bootstrap-scaffold/
+.wrangler/
 
 # --- Astro scaffold (merged by bootstrapper) ---
 dist/

@@ -1,6 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SynthCore from '../components/SynthCore.svelte';
+
+// Keep the instrument fully static/offline/anonymous even though the adapter
+// enables on-demand routes for the D1 endpoints [node:3c438e12].
+export const prerender = true;
 ---
 
 <Layout>

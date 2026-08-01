@@ -44,7 +44,7 @@ GUI (the agent never promotes). Until promoted, they go dormant on the next swee
 | --- | --- | --- |
 | `ccccdf98` | Stack: Astro islands + Svelte + TS + Tailwind; synth core is a client-only island. | — |
 | `0005f4be` | Runtime/hosting: Cloudflare Pages/Workers (edge). | — |
-| `84fcdc4b` | Persistence: SQLite on MyDevil (over a BaaS) for control/cost. | DEPENDS_ON `0005f4be` |
+| `84fcdc4b` | ~~Persistence: SQLite on MyDevil (over a BaaS) for control/cost.~~ **SUPERSEDED by `0d98d40a` (D1); flagged for review.** | DEPENDS_ON `0005f4be` |
 | `4d3e471b` | Access model: anon play; login to save/own; public links unauth; flat roles. | DEPENDS_ON `c1b0d7c2` |
 | `4e4060ca` | Git: feature-branch → merge commit to main; Conventional Commits. | DEPENDS_ON `306c084e` |
 | `1cade23e` | MP3 export: reproducible render + live capture; in-browser encode preferred. | DEPENDS_ON `cb3ae8cf` |
@@ -52,8 +52,20 @@ GUI (the agent never promotes). Until promoted, they go dormant on the next swee
 ### Issues (accepted open gaps)
 | Node | Statement | Edges |
 | --- | --- | --- |
-| `3bf08d2f` | Cloudflare↔MyDevil bridge (thin API vs D1) must be chosen before accounts/storage/sharing. | DEPENDS_ON `84fcdc4b`, `0005f4be` |
+| `3bf08d2f` | ~~Cloudflare↔MyDevil bridge (thin API vs D1) must be chosen before accounts/storage/sharing.~~ **DISSOLVED by `0d98d40a` (D1 = no bridge); flagged for review.** | DEPENDS_ON `84fcdc4b`, `0005f4be` |
 | `413e88af` | Cat detection: off-device consent model + recognition approach unresolved; blocks cat slice. | DEPENDS_ON `3037236e` |
+
+## Amendments
+
+### 2026-08-01 — Persistence: MyDevil-SQLite → Cloudflare D1
+- `0d98d40a` (decision) — Persistence backend = Cloudflare D1, not SQLite-on-MyDevil.
+  CONTRADICTS `84fcdc4b` and `3bf08d2f` (both auto-flagged for review); DEPENDS_ON
+  `0005f4be` (CF runtime) and `4530f889`.
+- `4530f889` (concept) — persistence workload is tiny + low-write → store choice is ops, not perf.
+- `f91239cb` (issue) — accepted D1 tradeoffs (data on CF / vendor lock / single-primary
+  serialized writes / size caps); non-issues at hobby scale.
+- Human action: in the GUI review queue, close/supersede `84fcdc4b` and `3bf08d2f`, and
+  promote `0d98d40a` + `4530f889`.
 
 ## Post-distillation
 
