@@ -1,0 +1,23 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"compatibility_date": "2026-08-01",
+	"compatibility_flags": ["global_fetch_strictly_public"],
+	"name": "sound-of-loam",
+	"main": "@astrojs/cloudflare/entrypoints/server",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "sound-of-loam",
+			// Placeholder until remote provisioning (F-03, needs Cloudflare auth).
+			// Local dev + tests use .wrangler/state and need no real id.
+			"database_id": "local-dev-placeholder"
+		}
+	]
+}

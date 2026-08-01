@@ -1,5 +1,5 @@
 {
-  "name": "bootstrap-scaffold",
+  "name": "sound-of-loam",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -10,17 +10,21 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate-types": "wrangler types"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^14.1.7",
     "@astrojs/svelte": "^9.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.1.6",
     "svelte": "^5.56.8",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "wrangler": "^4.118.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@types/node": "^26.1.2",
     "playwright": "^1.62.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
