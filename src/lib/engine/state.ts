@@ -41,3 +41,11 @@ export function defaultState(seed = 0x5eed): SystemState {
     engineVersion: ENGINE_VERSION,
   };
 }
+
+/** Mood presets (FR-005) — macro value-sets the engine drifts toward. */
+export const MOOD_PRESETS: Record<string, Macros> = {
+  Calm: { density: 0.2, brightness: 0.35, motion: 0.15, mood: 0.15 },
+  Restless: { density: 0.75, brightness: 0.7, motion: 0.7, mood: 0.85 },
+  Deep: { density: 0.35, brightness: 0.2, motion: 0.25, mood: 0.1 },
+  Bright: { density: 0.5, brightness: 0.85, motion: 0.45, mood: 0.7 },
+};

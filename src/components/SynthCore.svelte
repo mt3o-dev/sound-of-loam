@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { Engine } from '../lib/engine/engine';
-  import { defaultState, type Macros, type SystemState } from '../lib/engine/state';
+  import { defaultState, MOOD_PRESETS, type Macros, type SystemState } from '../lib/engine/state';
   import Visualizer from './Visualizer.svelte';
   import SensorBar from './SensorBar.svelte';
   import { createDefaultHub } from '../lib/sensors/sources';
@@ -111,14 +111,48 @@
     engine?.setMacro(key, value);
   }
 
+  let padLast = { x: 0.5, y: 0.5 };
+  let padVel = { x: 0, y: 0 };
+  const clamp01 = (n: number) => Math.min(1, Math.max(0, n));
+
   function onPadMove(e: PointerEvent) {
     if (!engine || !started) return;
     const el = e.currentTarget as HTMLElement;
     const r = el.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width;
-    const y = (e.clientY - r.top) / r.height;
-    engine.nudgeXY(Math.min(1, Math.max(0, x)), Math.min(1, Math.max(0, y)));
+    const x = clamp01((e.clientX - r.left) / r.width);
+    const y = clamp01((e.clientY - r.top) / r.height);
+    padVel = { x: x - padLast.x, y: y - padLast.y };
+    padLast = { x, y };
+    engine.nudgeXY(x, y);
   }
+
+  // Momentum: after release, keep nudging along the last velocity, decaying (FR-004).
+  function onPadUp() {
+    if (!engine) return;
+    let vx = padVel.x * 3;
+    let vy = padVel.y * 3;
+    let px = padLast.x;
+    let py = padLast.y;
+    const fling = () => {
+      if (!engine || Math.hypot(vx, vy) < 0.004) return;
+      px = clamp01(px + vx);
+      py = clamp01(py + vy);
+      engine.nudgeXY(px, py);
+      vx *= 0.9;
+      vy *= 0.9;
+      requestAnimationFrame(fling);
+    };
+    fling();
+  }
+
+  function applyPreset(name: string) {
+    const p = MOOD_PRESETS[name];
+    if (!engine || !p) return;
+    engine.applyMacros(p);
+    for (const k of Object.keys(p) as (keyof Macros)[]) macros[k] = p[k];
+  }
+  const stir = () => engine?.perturb(0.5);
+  const newSeed = () => engine?.reseed();
 
   async function saveCurrent() {
     if (!engine || !user) return;
@@ -214,10 +248,36 @@
              bg-gradient-to-br from-neutral-900 to-neutral-800 select-none touch-none"
       onpointermove={onPadMove}
       onpointerdown={onPadMove}
+      onpointerup={onPadUp}
     >
       <span class="pointer-events-none absolute left-2 top-2 text-xs text-neutral-500">
-        drag: ← darker · brighter → / ↑ denser · sparser ↓
+        drag: ← darker · brighter → / ↑ denser · sparser ↓ · fling for momentum
       </span>
+    </div>
+
+    <!-- Nudge surfaces: presets, stir, reseed (all bias, never control) -->
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      {#each Object.keys(MOOD_PRESETS) as name}
+        <button
+          onclick={() => applyPreset(name)}
+          class="rounded border border-neutral-700 px-3 py-1 text-neutral-300 hover:bg-neutral-800"
+        >
+          {name}
+        </button>
+      {/each}
+      <span class="mx-1 text-neutral-700">|</span>
+      <button
+        onclick={stir}
+        class="rounded border border-violet-700 px-3 py-1 text-violet-300 hover:bg-violet-950"
+      >
+        Stir
+      </button>
+      <button
+        onclick={newSeed}
+        class="rounded border border-neutral-700 px-3 py-1 text-neutral-300 hover:bg-neutral-800"
+      >
+        New seed
+      </button>
     </div>
 
     <div class="flex flex-col gap-4">
