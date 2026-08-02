@@ -3,12 +3,16 @@
   import { Engine } from '../lib/engine/engine';
   import { defaultState, type Macros, type SystemState } from '../lib/engine/state';
   import Visualizer from './Visualizer.svelte';
+  import SensorBar from './SensorBar.svelte';
+  import { createDefaultHub } from '../lib/sensors/sources';
+  import { applySensorBias } from '../lib/sensors/bias';
 
   // When mounted on a /s/:slug share page, initialState seeds the engine.
   let { initialState = null, shared = false }: { initialState?: SystemState | null; shared?: boolean } =
     $props();
 
   let engine: Engine | null = null;
+  const hub = createDefaultHub();
   let started = $state(false);
   let starting = $state(false);
 
@@ -31,7 +35,10 @@
     { key: 'mood', label: 'Mood' },
   ];
 
-  onMount(refreshMe);
+  onMount(() => {
+    void refreshMe();
+    hub.startAmbient();
+  });
 
   async function refreshMe() {
     try {
@@ -95,6 +102,7 @@
   function tickIndicator() {
     if (!engine) return;
     live = engine.snapshot();
+    applySensorBias(engine, hub.snapshot(), 0.016);
     raf = requestAnimationFrame(tickIndicator);
   }
 
@@ -162,10 +170,15 @@
   onDestroy(() => {
     cancelAnimationFrame(raf);
     engine?.stop();
+    hub.stopAll();
   });
 </script>
 
-<Visualizer snapshot={() => (engine && started ? engine.snapshot() : null)} />
+<Visualizer
+  snapshot={() => (engine && started ? engine.snapshot() : null)}
+  sensors={() => hub.snapshot()}
+/>
+<SensorBar {hub} />
 
 <div class="mx-auto flex max-w-xl flex-col gap-6 p-6 text-neutral-100">
   <header class="text-center">

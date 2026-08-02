@@ -1,9 +1,14 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import type { Macros } from '../lib/engine/state';
+  import type { SensorSnapshot } from '../lib/sensors/types';
 
-  // Reads the engine's live macro snapshot each frame (null when not running).
-  let { snapshot }: { snapshot: () => Macros | null } = $props();
+  // Reads the engine's live macro snapshot each frame (null when not running),
+  // plus (optionally) live sensor values so every active sensor moves the visuals.
+  let { snapshot, sensors }: { snapshot: () => Macros | null; sensors?: () => SensorSnapshot | null } =
+    $props();
+
+  const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
 
   let canvas: HTMLCanvasElement;
   let raf = 0;
@@ -26,10 +31,23 @@
     const H = canvas.height;
 
     const s = snapshot();
-    const density = s?.density ?? 0.12;
-    const brightness = s?.brightness ?? 0.25;
-    const motion = s?.motion ?? 0.1;
-    const mood = s?.mood ?? 0.3;
+    let density = s?.density ?? 0.12;
+    let brightness = s?.brightness ?? 0.25;
+    let motion = s?.motion ?? 0.1;
+    let mood = s?.mood ?? 0.3;
+
+    // Blend in active sensors so each one visibly moves the field [node:b81f3596].
+    const sn = sensors?.() ?? null;
+    const sv = (id: string) => {
+      const e = sn?.[id];
+      return e && (e.status === 'active' || e.status === 'granted') ? e.value : null;
+    };
+    const mic = sv('mic'); if (mic != null) brightness = clamp01(brightness * 0.6 + mic * 0.6);
+    const mot = sv('motion'); if (mot != null) motion = clamp01(motion * 0.6 + mot * 0.6);
+    const lightS = sv('light'); if (lightS != null) brightness = clamp01(brightness * 0.7 + lightS * 0.4);
+    const sun = sv('sun'); if (sun != null) mood = clamp01(mood * 0.6 + sun * 0.4);
+    const weather = sv('weather'); if (weather != null) density = clamp01(density * 0.7 + weather * 0.4);
+    const pointer = sv('pointer'); if (pointer != null) motion = clamp01(motion + pointer * 0.3);
 
     // Trail fade over the dark base.
     ctx.globalCompositeOperation = 'source-over';
