@@ -300,3 +300,8 @@ exist and do NOT re-scaffold them.
   LIVE at https://sound-of-loam.teodor-kulej.workers.dev (Workers + remote D1). Instrument,
   visuals, D1, public routes verified live. Trailing config: invalid Resend key disables
   magic-link email until fixed `[node:e2c03bd2]`. Change summary `[node:922f9a4a]` (dormant — promote).
+- **sensor-feedback (ad-hoc, beyond the original slices)** — Archived 2026-08-02 →
+  `context/archive/sensor-feedback/`. SensorHub (pointer/time/battery/viewport + permission-gated
+  motion/mic/light + opt-in weather/sun via Open-Meteo) drives visuals + biases the engine, with a
+  hidable per-sensor debug bar. Delivered S-02's sensor half; S-02's nudge surfaces (X-Y pad,
+  presets, perturb) remain. Cat (S-08) still blocked. Change summary `[node:ed32778a]` (dormant — promote).
