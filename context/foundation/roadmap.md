@@ -47,7 +47,7 @@ feel right, nothing downstream matters.
 | F-01 | persistence-backend      | (foundation) app can read/write persistent storage (Cloudflare D1) | —                | Access Control, NFR (self-contained file) | done     |
 | F-02 | email-auth               | (foundation) email login + sessions in place                    | F-01                 | FR-024, Access Control                | done     |
 | S-05 | accounts-and-cloud-save  | sign in via email and save/own tracks in an account             | F-01, F-02           | FR-024, FR-020                        | done     |
-| F-03 | cloudflare-deploy        | (foundation) app deploys to a public URL                        | —                    | NFR (public link plays)               | proposed |
+| F-03 | cloudflare-deploy        | (foundation) app deploys to a public URL                        | —                    | NFR (public link plays)               | done     |
 | S-06 | public-track-sharing     | publish a track to a public link anyone can play                | F-01, S-05           | FR-026                                | done     |
 
 ## Streams
@@ -296,3 +296,7 @@ exist and do NOT re-scaffold them.
   `context/archive/public-track-sharing/`. Session-gated POST /api/share → unguessable slug;
   public unauth /s/[slug] mounts the instrument seeded with the shared state. Verified on the
   worker (401/slug/200/404). Change summary `[node:75a1614c]` (dormant — promote).
+- **F-03: app deploys to a public URL** — Archived 2026-08-02 → `context/archive/cloudflare-deploy/`.
+  LIVE at https://sound-of-loam.teodor-kulej.workers.dev (Workers + remote D1). Instrument,
+  visuals, D1, public routes verified live. Trailing config: invalid Resend key disables
+  magic-link email until fixed `[node:e2c03bd2]`. Change summary `[node:922f9a4a]` (dormant — promote).
