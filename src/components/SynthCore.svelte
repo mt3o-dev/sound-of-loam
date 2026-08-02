@@ -4,6 +4,10 @@
   import { defaultState, type Macros, type SystemState } from '../lib/engine/state';
   import Visualizer from './Visualizer.svelte';
 
+  // When mounted on a /s/:slug share page, initialState seeds the engine.
+  let { initialState = null, shared = false }: { initialState?: SystemState | null; shared?: boolean } =
+    $props();
+
   let engine: Engine | null = null;
   let started = $state(false);
   let starting = $state(false);
@@ -18,6 +22,7 @@
   let email = $state('');
   let authMsg = $state('');
   let saveMsg = $state('');
+  let shareUrl = $state('');
 
   const MACROS: { key: keyof Macros; label: string }[] = [
     { key: 'density', label: 'Density' },
@@ -69,8 +74,12 @@
   async function begin() {
     if (started || starting) return;
     starting = true;
-    engine = new Engine(defaultState());
-    for (const { key } of MACROS) engine.setMacro(key, macros[key]);
+    const startState = initialState ?? defaultState();
+    engine = new Engine(startState);
+    for (const { key } of MACROS) {
+      macros[key] = startState.macros[key];
+      engine.setMacro(key, macros[key]);
+    }
     await engine.start();
     started = true;
     starting = false;
@@ -121,6 +130,22 @@
     }
   }
 
+  async function shareCurrent() {
+    if (!engine || !user) return;
+    shareUrl = 'creating…';
+    const r = await fetch('/api/share', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ state: engine.serialize() }),
+    });
+    if (r.ok) {
+      const { slug } = await r.json();
+      shareUrl = new URL('/s/' + slug, location.origin).toString();
+    } else {
+      shareUrl = '';
+    }
+  }
+
   async function loadTrack(id: string) {
     const r = await fetch('/api/tracks/' + id);
     if (!r.ok) return;
@@ -149,6 +174,12 @@
       A soundscape you tend, not play. It drifts on its own — nudge it, never control it.
     </p>
   </header>
+
+  {#if shared}
+    <p class="rounded bg-emerald-950/50 px-3 py-2 text-center text-xs text-emerald-300">
+      A shared soundscape — press Begin to play, then tend it yourself.
+    </p>
+  {/if}
 
   {#if !started}
     <button
@@ -241,12 +272,25 @@
           >
             Save current
           </button>
+          <button
+            onclick={shareCurrent}
+            disabled={!started}
+            class="rounded border border-sky-700 px-3 py-1.5 text-sky-300
+                   hover:bg-sky-950 disabled:opacity-40"
+          >
+            Share
+          </button>
           <button onclick={signOut} class="rounded border border-neutral-700 px-3 py-1.5 hover:bg-neutral-800">
             Sign out
           </button>
         </div>
       </div>
       {#if saveMsg}<p class="mt-1 text-xs text-neutral-500">{saveMsg}</p>{/if}
+      {#if shareUrl}
+        <p class="mt-1 break-all text-xs text-sky-400">
+          Public link: <a href={shareUrl} class="underline">{shareUrl}</a>
+        </p>
+      {/if}
       {#if !started}<p class="mt-1 text-xs text-neutral-500">Press Begin, tend the sound, then Save.</p>{/if}
 
       {#if tracks.length}
