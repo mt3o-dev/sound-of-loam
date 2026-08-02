@@ -48,7 +48,7 @@ feel right, nothing downstream matters.
 | F-02 | email-auth               | (foundation) email login + sessions in place                    | F-01                 | FR-024, Access Control                | done     |
 | S-05 | accounts-and-cloud-save  | sign in via email and save/own tracks in an account             | F-01, F-02           | FR-024, FR-020                        | done     |
 | F-03 | cloudflare-deploy        | (foundation) app deploys to a public URL                        | —                    | NFR (public link plays)               | proposed |
-| S-06 | public-track-sharing     | publish a track to a public link anyone can play                | F-01, F-03, S-05     | FR-026                                | proposed |
+| S-06 | public-track-sharing     | publish a track to a public link anyone can play                | F-01, S-05           | FR-026                                | done     |
 
 ## Streams
 
@@ -292,3 +292,7 @@ exist and do NOT re-scaffold them.
 - **S-09: generative visual layer** — Archived 2026-08-02 → `context/archive/generative-visuals/`.
   Canvas-2D orb field driven by the engine's macro snapshot; reduced-motion aware; additive,
   no backend. Verified headless. Change summary `[node:a76ec921]` (dormant — promote).
+- **S-06: publish a track to a public link** — Archived 2026-08-02 →
+  `context/archive/public-track-sharing/`. Session-gated POST /api/share → unguessable slug;
+  public unauth /s/[slug] mounts the instrument seeded with the shared state. Verified on the
+  worker (401/slug/200/404). Change summary `[node:75a1614c]` (dormant — promote).
