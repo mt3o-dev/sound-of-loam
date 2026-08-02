@@ -1,0 +1,39 @@
+---
+import { env } from 'cloudflare:workers';
+import Layout from '../../layouts/Layout.astro';
+import SynthCore from '../../components/SynthCore.svelte';
+import { getShare } from '../../lib/db/repo';
+import type { D1Like } from '../../lib/db/types';
+import type { SystemState } from '../../lib/engine/state';
+
+export const prerender = false;
+
+const { slug } = Astro.params;
+const db = (env as unknown as { DB?: D1Like }).DB;
+const share = db && slug ? await getShare(db, slug) : null;
+
+let state: SystemState | null = null;
+if (share) {
+  try {
+    state = JSON.parse(share.state_json) as SystemState;
+  } catch {
+    state = null;
+  }
+}
+if (!state) Astro.response.status = 404;
+---
+
+<Layout>
+  <main class="flex min-h-dvh items-center justify-center">
+    {
+      state ? (
+        <SynthCore initialState={state} shared client:only="svelte" />
+      ) : (
+        <p class="text-neutral-400">
+          This shared soundscape wasn’t found.{' '}
+          <a href="/" class="text-emerald-400 underline">Open Sound of Loam</a>.
+        </p>
+      )
+    }
+  </main>
+</Layout>
