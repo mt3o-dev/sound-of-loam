@@ -5,6 +5,8 @@
 
 import type { D1Like, UserRow, TrackRow, ShareRow } from './types';
 
+// ---- auth: users + single-use login tokens (F-02) ----------------------------
+
 export interface NewTrack {
   id: string;
   userId: string | null;
@@ -74,4 +76,55 @@ export async function createShare(db: D1Like, s: NewShare): Promise<void> {
 
 export function getShare(db: D1Like, slug: string): Promise<ShareRow | null> {
   return db.prepare('SELECT * FROM shares WHERE slug = ?').bind(slug).first<ShareRow>();
+}
+
+// ---- auth: users + single-use login tokens (F-02) ----------------------------
+
+/** Insert a user if the email is new; return the current user row either way. */
+export async function upsertUserByEmail(
+  db: D1Like,
+  u: { id: string; email: string; now: number },
+): Promise<UserRow> {
+  await db
+    .prepare('INSERT INTO users (id, email, created_at) VALUES (?, ?, ?) ON CONFLICT(email) DO NOTHING')
+    .bind(u.id, u.email, u.now)
+    .run();
+  const row = await getUserByEmail(db, u.email);
+  if (!row) throw new Error('upsertUserByEmail: user missing after insert');
+  return row;
+}
+
+export async function createLoginToken(
+  db: D1Like,
+  t: { token: string; email: string; expiresAt: number },
+): Promise<void> {
+  await db
+    .prepare('INSERT INTO login_tokens (token, email, expires_at, consumed_at) VALUES (?, ?, ?, NULL)')
+    .bind(t.token, t.email, t.expiresAt)
+    .run();
+}
+
+/**
+ * Atomically consume a token exactly once. Marks consumed_at = now via a
+ * conditional UPDATE, then reads back the row it just marked — so a replay (or a
+ * concurrent second call) that doesn't set consumed_at=now returns null. Returns
+ * the email on success, null if missing/expired/already-consumed. Portable across
+ * D1 and the node:sqlite test shim (no reliance on rows-affected shape).
+ */
+export async function consumeLoginToken(
+  db: D1Like,
+  token: string,
+  now: number,
+): Promise<{ email: string } | null> {
+  await db
+    .prepare(
+      'UPDATE login_tokens SET consumed_at = ? WHERE token = ? AND consumed_at IS NULL AND expires_at > ?',
+    )
+    .bind(now, token, now)
+    .run();
+  const row = await db
+    .prepare('SELECT email FROM login_tokens WHERE token = ? AND consumed_at = ?')
+    .bind(token, now)
+    .first<{ email: string }>();
+  return row ? { email: row.email } : null;
 }

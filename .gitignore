@@ -3,6 +3,7 @@ context/memory-graph.db*
 .serena/
 .bootstrap-scaffold/
 .wrangler/
+.dev.vars
 
 # --- Astro scaffold (merged by bootstrapper) ---
 dist/

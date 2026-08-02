@@ -25,6 +25,13 @@ export interface ShareRow {
   created_at: number;
 }
 
+export interface LoginTokenRow {
+  token: string;
+  email: string;
+  expires_at: number;
+  consumed_at: number | null;
+}
+
 export interface D1StmtLike {
   bind(...values: unknown[]): D1StmtLike;
   first<T = unknown>(): Promise<T | null>;
