@@ -1,17 +1,22 @@
 <script lang="ts">
-  import { onDestroy } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { Engine } from '../lib/engine/engine';
-  import { defaultState, type Macros } from '../lib/engine/state';
+  import { defaultState, type Macros, type SystemState } from '../lib/engine/state';
 
   let engine: Engine | null = null;
   let started = $state(false);
   let starting = $state(false);
 
-  // Slider-bound macro targets.
   let macros = $state<Macros>(defaultState().macros);
-  // Live snapshot of the drifting parameter values, for the indicator.
   let live = $state<Macros>({ ...macros });
   let raf = 0;
+
+  // Account / library (additive — the instrument works signed-out).
+  let user = $state<{ email: string } | null>(null);
+  let tracks = $state<{ id: string; name: string; updated_at: number }[]>([]);
+  let email = $state('');
+  let authMsg = $state('');
+  let saveMsg = $state('');
 
   const MACROS: { key: keyof Macros; label: string }[] = [
     { key: 'density', label: 'Density' },
@@ -20,11 +25,49 @@
     { key: 'mood', label: 'Mood' },
   ];
 
+  onMount(refreshMe);
+
+  async function refreshMe() {
+    try {
+      const r = await fetch('/api/auth/me');
+      if (r.ok) {
+        user = (await r.json()).user;
+        await refreshTracks();
+      } else {
+        user = null;
+      }
+    } catch {
+      user = null;
+    }
+  }
+
+  async function refreshTracks() {
+    const r = await fetch('/api/tracks');
+    if (r.ok) tracks = (await r.json()).tracks;
+  }
+
+  async function requestLink() {
+    authMsg = 'sending…';
+    const r = await fetch('/api/auth/request', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    authMsg = r.ok
+      ? 'Check your email for a sign-in link (in dev, see the server console).'
+      : 'That email looks invalid.';
+  }
+
+  async function signOut() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    user = null;
+    tracks = [];
+  }
+
   async function begin() {
     if (started || starting) return;
     starting = true;
     engine = new Engine(defaultState());
-    // apply any pre-Begin slider positions
     for (const { key } of MACROS) engine.setMacro(key, macros[key]);
     await engine.start();
     started = true;
@@ -49,7 +92,6 @@
     engine?.setMacro(key, value);
   }
 
-  // Pointer X-Y pad → transient nudges.
   function onPadMove(e: PointerEvent) {
     if (!engine || !started) return;
     const el = e.currentTarget as HTMLElement;
@@ -57,6 +99,37 @@
     const x = (e.clientX - r.left) / r.width;
     const y = (e.clientY - r.top) / r.height;
     engine.nudgeXY(Math.min(1, Math.max(0, x)), Math.min(1, Math.max(0, y)));
+  }
+
+  async function saveCurrent() {
+    if (!engine || !user) return;
+    const name = prompt('Name this soundscape:', 'Untitled');
+    if (name === null) return;
+    saveMsg = 'saving…';
+    const r = await fetch('/api/tracks', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name, state: engine.serialize() }),
+    });
+    if (r.ok) {
+      saveMsg = 'Saved.';
+      await refreshTracks();
+    } else {
+      saveMsg = 'Save failed.';
+    }
+  }
+
+  async function loadTrack(id: string) {
+    const r = await fetch('/api/tracks/' + id);
+    if (!r.ok) return;
+    const { state } = (await r.json()) as { state: SystemState };
+    engine?.stop();
+    cancelAnimationFrame(raf);
+    engine = new Engine(state);
+    for (const { key } of MACROS) macros[key] = state.macros[key];
+    await engine.start();
+    started = true;
+    tickIndicator();
   }
 
   onDestroy(() => {
@@ -86,7 +159,6 @@
       Sound is synthesized live in your browser — no recordings, nothing leaves your device.
     </p>
   {:else}
-    <!-- X-Y pad -->
     <div
       role="application"
       aria-label="Nudge pad — drag to bias the sound"
@@ -100,7 +172,6 @@
       </span>
     </div>
 
-    <!-- Macro sliders -->
     <div class="flex flex-col gap-4">
       {#each MACROS as m}
         <label class="flex items-center gap-3 text-sm">
@@ -114,7 +185,6 @@
             oninput={(e) => onSlider(m.key, +e.currentTarget.value)}
             class="flex-1 accent-emerald-400"
           />
-          <!-- live drifting value -->
           <span class="w-16">
             <span class="block h-1.5 rounded bg-neutral-700">
               <span
@@ -134,8 +204,59 @@
     >
       stop
     </button>
-    <p class="text-center text-xs text-neutral-500">
-      Sliders set where each quality settles; the pad nudges — the system drifts back on its own.
-    </p>
   {/if}
+
+  <!-- Account / library — additive; never gates the instrument -->
+  <section class="mt-2 border-t border-neutral-800 pt-4 text-sm">
+    {#if !user}
+      <p class="mb-2 text-neutral-400">Sign in to save and revisit your soundscapes.</p>
+      <div class="flex gap-2">
+        <input
+          type="email"
+          bind:value={email}
+          placeholder="you@example.com"
+          class="flex-1 rounded border border-neutral-700 bg-neutral-900 px-3 py-1.5"
+        />
+        <button
+          onclick={requestLink}
+          class="rounded border border-neutral-600 px-3 py-1.5 hover:bg-neutral-800"
+        >
+          Email me a link
+        </button>
+      </div>
+      {#if authMsg}<p class="mt-2 text-xs text-neutral-400">{authMsg}</p>{/if}
+    {:else}
+      <div class="flex items-center justify-between">
+        <span class="text-neutral-400">Signed in as <span class="text-neutral-200">{user.email}</span></span>
+        <div class="flex gap-2">
+          <button
+            onclick={saveCurrent}
+            disabled={!started}
+            class="rounded border border-emerald-700 px-3 py-1.5 text-emerald-300
+                   hover:bg-emerald-950 disabled:opacity-40"
+          >
+            Save current
+          </button>
+          <button onclick={signOut} class="rounded border border-neutral-700 px-3 py-1.5 hover:bg-neutral-800">
+            Sign out
+          </button>
+        </div>
+      </div>
+      {#if saveMsg}<p class="mt-1 text-xs text-neutral-500">{saveMsg}</p>{/if}
+      {#if !started}<p class="mt-1 text-xs text-neutral-500">Press Begin, tend the sound, then Save.</p>{/if}
+
+      {#if tracks.length}
+        <ul class="mt-3 flex flex-col gap-1">
+          {#each tracks as t}
+            <li class="flex items-center justify-between rounded px-2 py-1 hover:bg-neutral-900">
+              <span class="truncate text-neutral-300">{t.name}</span>
+              <button onclick={() => loadTrack(t.id)} class="text-emerald-400 hover:underline">load</button>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="mt-3 text-xs text-neutral-500">No saved soundscapes yet.</p>
+      {/if}
+    {/if}
+  </section>
 </div>
