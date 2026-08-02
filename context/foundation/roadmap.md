@@ -46,7 +46,7 @@ feel right, nothing downstream matters.
 | S-08 | cat-signals              | have a cat's presence/purr/meow bias the sound                  | S-02                 | FR-016                                | blocked  |
 | F-01 | persistence-backend      | (foundation) app can read/write persistent storage (Cloudflare D1) | —                | Access Control, NFR (self-contained file) | done     |
 | F-02 | email-auth               | (foundation) email login + sessions in place                    | F-01                 | FR-024, Access Control                | done     |
-| S-05 | accounts-and-cloud-save  | sign in via email and save/own tracks in an account             | F-01, F-02, S-03     | FR-024, FR-020                        | proposed |
+| S-05 | accounts-and-cloud-save  | sign in via email and save/own tracks in an account             | F-01, F-02           | FR-024, FR-020                        | done     |
 | F-03 | cloudflare-deploy        | (foundation) app deploys to a public URL                        | —                    | NFR (public link plays)               | proposed |
 | S-06 | public-track-sharing     | publish a track to a public link anyone can play                | F-01, F-03, S-05     | FR-026                                | proposed |
 
@@ -285,3 +285,7 @@ exist and do NOT re-scaffold them.
   verified end-to-end on the worker + 35 tests. Real provider/domain/AUTH_SECRET at F-03.
   Follow-up: rate-limit the request endpoint. Change summary `[node:1712705e]` (dormant —
   promote). Unlocks S-05, S-06.
+- **S-05: user signs in and saves/loads their tracks** — Archived 2026-08-02 →
+  `context/archive/accounts-and-cloud-save/`. Engine.serialize() + session-scoped /api/tracks
+  (ownership-enforced) + an additive account/library panel in the island. Verified e2e
+  (save/list/load + cross-user isolation). Change summary `[node:a587f6e3]` (dormant — promote).
