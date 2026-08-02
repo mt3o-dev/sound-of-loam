@@ -41,7 +41,7 @@ feel right, nothing downstream matters.
 | S-02 | nudge-and-sensors        | shape it via X-Y pad, presets, perturb + motion/mic/time/light  | S-01                 | FR-004, FR-005, FR-006, FR-011, FR-012, FR-013 | proposed |
 | S-03 | save-load-state-file     | save system state to a file and reload it (local, no account)   | S-01                 | FR-020, FR-021                        | proposed |
 | S-04 | mp3-export               | download the soundscape as MP3 (render + live capture)          | S-01                 | FR-022, FR-023                        | proposed |
-| S-09 | generative-visuals       | see a generative visual layer evolve with the sound             | S-01                 | FR-030                                | proposed |
+| S-09 | generative-visuals       | see a generative visual layer evolve with the sound             | S-01                 | FR-030                                | done     |
 | S-07 | environmental-signals    | have location/time (sun) + weather bias the sound               | S-01, S-02           | FR-014, FR-015                        | proposed |
 | S-08 | cat-signals              | have a cat's presence/purr/meow bias the sound                  | S-02                 | FR-016                                | blocked  |
 | F-01 | persistence-backend      | (foundation) app can read/write persistent storage (Cloudflare D1) | —                | Access Control, NFR (self-contained file) | done     |
@@ -289,3 +289,6 @@ exist and do NOT re-scaffold them.
   `context/archive/accounts-and-cloud-save/`. Engine.serialize() + session-scoped /api/tracks
   (ownership-enforced) + an additive account/library panel in the island. Verified e2e
   (save/list/load + cross-user isolation). Change summary `[node:a587f6e3]` (dormant — promote).
+- **S-09: generative visual layer** — Archived 2026-08-02 → `context/archive/generative-visuals/`.
+  Canvas-2D orb field driven by the engine's macro snapshot; reduced-motion aware; additive,
+  no backend. Verified headless. Change summary `[node:a76ec921]` (dormant — promote).
