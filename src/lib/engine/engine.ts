@@ -100,6 +100,28 @@ export class Engine {
     this.nudge('motion', (Math.abs(x - 0.5) + Math.abs(y - 0.5)) * 0.15);
   }
 
+  /** Set several macro means at once (mood presets). */
+  applyMacros(m: Partial<Macros>): void {
+    for (const k of Object.keys(m) as MacroName[]) {
+      const v = m[k];
+      if (v != null) this.setMacro(k, v);
+    }
+  }
+
+  /** "Stir" — a transient random nudge to every macro; decays back (FR-006). */
+  perturb(amount = 0.4): void {
+    for (const name of Object.keys(this.params) as MacroName[]) {
+      this.params[name].nudge((this.rng() - 0.5) * amount);
+    }
+  }
+
+  /** Reseed the PRNG for a fresh drift path without tearing down audio (FR-006). */
+  reseed(seed?: number): void {
+    const s = (seed ?? Math.floor(this.rng() * 0xffffffff)) >>> 0;
+    this.state.seed = s;
+    this.rng = mulberry32(s);
+  }
+
   /** Live snapshot of the four parameter values (for a UI indicator). */
   snapshot(): Macros {
     return {
