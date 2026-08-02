@@ -4,6 +4,7 @@ context/memory-graph.db*
 .bootstrap-scaffold/
 .wrangler/
 .dev.vars
+.cf-deploy.env
 
 # --- Astro scaffold (merged by bootstrapper) ---
 dist/

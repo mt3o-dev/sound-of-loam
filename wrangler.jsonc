@@ -15,9 +15,7 @@
 		{
 			"binding": "DB",
 			"database_name": "sound-of-loam",
-			// Placeholder until remote provisioning (F-03, needs Cloudflare auth).
-			// Local dev + tests use .wrangler/state and need no real id.
-			"database_id": "local-dev-placeholder"
+			"database_id": "0d99cea2-41e0-412d-96c5-8a3826717cca"
 		}
 	]
 }
