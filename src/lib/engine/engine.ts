@@ -110,6 +110,18 @@ export class Engine {
     };
   }
 
+  /** Serialize the current state for saving [node:cb3ae8cf]. Captures the current
+   *  (drifting) macro values so a reload resumes near this sound. */
+  serialize(): SystemState {
+    return {
+      seed: this.state.seed,
+      macros: this.snapshot(),
+      scale: this.state.scale,
+      rootMidi: this.state.rootMidi,
+      engineVersion: this.state.engineVersion,
+    };
+  }
+
   private tick(now: number, horizon: number, dt: number): void {
     if (!this.ctx || !this.bus || !this.drone || !this.texture) return;
     // Advance autonomous drift + bias decay.
