@@ -2,6 +2,7 @@
   import { onDestroy, onMount } from 'svelte';
   import { Engine } from '../lib/engine/engine';
   import { defaultState, type Macros, type SystemState } from '../lib/engine/state';
+  import Visualizer from './Visualizer.svelte';
 
   let engine: Engine | null = null;
   let started = $state(false);
@@ -30,8 +31,9 @@
   async function refreshMe() {
     try {
       const r = await fetch('/api/auth/me');
-      if (r.ok) {
-        user = (await r.json()).user;
+      const d = await r.json();
+      if (d.authenticated) {
+        user = d.user;
         await refreshTracks();
       } else {
         user = null;
@@ -137,6 +139,8 @@
     engine?.stop();
   });
 </script>
+
+<Visualizer snapshot={() => (engine && started ? engine.snapshot() : null)} />
 
 <div class="mx-auto flex max-w-xl flex-col gap-6 p-6 text-neutral-100">
   <header class="text-center">
