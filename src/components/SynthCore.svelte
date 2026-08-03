@@ -6,6 +6,7 @@
   import SensorBar from './SensorBar.svelte';
   import { createDefaultHub } from '../lib/sensors/sources';
   import { applySensorBias } from '../lib/sensors/bias';
+  import { toLoamFile, parseLoamFile } from '../lib/format';
 
   // When mounted on a /s/:slug share page, initialState seeds the engine.
   let { initialState = null, shared = false }: { initialState?: SystemState | null; shared?: boolean } =
@@ -27,6 +28,7 @@
   let authMsg = $state('');
   let saveMsg = $state('');
   let shareUrl = $state('');
+  let fileMsg = $state('');
 
   const MACROS: { key: keyof Macros; label: string }[] = [
     { key: 'density', label: 'Density' },
@@ -188,6 +190,38 @@
     }
   }
 
+  function saveFile() {
+    if (!engine) return;
+    const text = toLoamFile(engine.serialize(), Date.now());
+    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sound-of-loam-${Date.now()}.loam`;
+    a.click();
+    URL.revokeObjectURL(url);
+    fileMsg = 'Downloaded.';
+  }
+
+  async function loadFile(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    const res = parseLoamFile(await file.text());
+    input.value = '';
+    if (!res.ok) {
+      fileMsg = res.error;
+      return;
+    }
+    engine?.stop();
+    cancelAnimationFrame(raf);
+    engine = new Engine(res.state);
+    for (const { key } of MACROS) macros[key] = res.state.macros[key];
+    await engine.start();
+    started = true;
+    tickIndicator();
+    fileMsg = 'Loaded.';
+  }
+
   async function loadTrack(id: string) {
     const r = await fetch('/api/tracks/' + id);
     if (!r.ok) return;
@@ -278,6 +312,21 @@
       >
         New seed
       </button>
+    </div>
+
+    <!-- Local save/load (.loam) — no account needed -->
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      <button
+        onclick={saveFile}
+        class="rounded border border-neutral-700 px-3 py-1 text-neutral-300 hover:bg-neutral-800"
+      >
+        Save file
+      </button>
+      <label class="cursor-pointer rounded border border-neutral-700 px-3 py-1 text-neutral-300 hover:bg-neutral-800">
+        Load file
+        <input type="file" accept=".loam,application/json" class="hidden" onchange={loadFile} />
+      </label>
+      {#if fileMsg}<span class="text-neutral-500">{fileMsg}</span>{/if}
     </div>
 
     <div class="flex flex-col gap-4">
