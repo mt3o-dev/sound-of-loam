@@ -7,6 +7,8 @@
   import { createDefaultHub } from '../lib/sensors/sources';
   import { applySensorBias } from '../lib/sensors/bias';
   import { toLoamFile, parseLoamFile } from '../lib/format';
+  import { renderStateToBuffer, audioBufferToChannels, blobToChannels } from '../lib/audio/render';
+  import { mp3Blob } from '../lib/audio/mp3';
 
   // When mounted on a /s/:slug share page, initialState seeds the engine.
   let { initialState = null, shared = false }: { initialState?: SystemState | null; shared?: boolean } =
@@ -29,6 +31,9 @@
   let saveMsg = $state('');
   let shareUrl = $state('');
   let fileMsg = $state('');
+  let exportMsg = $state('');
+  let recording = $state(false);
+  let renderSecs = $state(30);
 
   const MACROS: { key: keyof Macros; label: string }[] = [
     { key: 'density', label: 'Density' },
@@ -222,6 +227,55 @@
     fileMsg = 'Loaded.';
   }
 
+  function downloadBlob(blob: Blob, name: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function renderMp3() {
+    if (!engine) return;
+    exportMsg = 'rendering…';
+    try {
+      const secs = Math.max(5, Math.min(300, renderSecs || 30));
+      const buf = await renderStateToBuffer(engine.serialize(), secs);
+      downloadBlob(mp3Blob(audioBufferToChannels(buf), buf.sampleRate), `sound-of-loam-${Date.now()}.mp3`);
+      exportMsg = 'MP3 downloaded.';
+    } catch {
+      exportMsg = 'Render failed.';
+    }
+  }
+
+  async function toggleRecord() {
+    if (!engine) return;
+    if (!recording) {
+      if (engine.startCapture()) {
+        recording = true;
+        exportMsg = 'recording…';
+      } else {
+        exportMsg = 'Recording not supported here.';
+      }
+      return;
+    }
+    recording = false;
+    exportMsg = 'encoding…';
+    const webm = await engine.stopCapture();
+    if (!webm) {
+      exportMsg = 'Nothing recorded.';
+      return;
+    }
+    try {
+      const { channels, sampleRate } = await blobToChannels(webm);
+      downloadBlob(mp3Blob(channels, sampleRate), `sound-of-loam-live-${Date.now()}.mp3`);
+      exportMsg = 'MP3 downloaded.';
+    } catch {
+      exportMsg = 'Encode failed.';
+    }
+  }
+
   async function loadTrack(id: string) {
     const r = await fetch('/api/tracks/' + id);
     if (!r.ok) return;
@@ -327,6 +381,33 @@
         <input type="file" accept=".loam,application/json" class="hidden" onchange={loadFile} />
       </label>
       {#if fileMsg}<span class="text-neutral-500">{fileMsg}</span>{/if}
+    </div>
+
+    <!-- Export MP3: reproducible render (FR-022) or live capture (FR-023) -->
+    <div class="flex flex-wrap items-center gap-2 text-xs">
+      <label class="text-neutral-400">
+        MP3
+        <input
+          type="number"
+          min="5"
+          max="300"
+          bind:value={renderSecs}
+          class="ml-1 w-16 rounded border border-neutral-700 bg-neutral-900 px-2 py-1"
+        /> s
+      </label>
+      <button
+        onclick={renderMp3}
+        class="rounded border border-amber-700 px-3 py-1 text-amber-300 hover:bg-amber-950"
+      >
+        Render MP3
+      </button>
+      <button
+        onclick={toggleRecord}
+        class={`rounded border px-3 py-1 hover:bg-neutral-800 ${recording ? 'border-red-600 text-red-300' : 'border-neutral-700 text-neutral-300'}`}
+      >
+        {recording ? 'Stop & save' : 'Record live'}
+      </button>
+      {#if exportMsg}<span class="text-neutral-500">{exportMsg}</span>{/if}
     </div>
 
     <div class="flex flex-col gap-4">
