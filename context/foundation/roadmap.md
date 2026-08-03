@@ -40,7 +40,7 @@ feel right, nothing downstream matters.
 | S-01 | synth-core-instrument    | hear self-evolving synthesized sound + nudge it (macro+pointer) | —                    | US-01, FR-001, FR-002, FR-003, FR-010, FR-025 | done     |
 | S-02 | nudge-and-sensors        | shape it via X-Y pad, presets, perturb + motion/mic/time/light  | S-01                 | FR-004, FR-005, FR-006, FR-011, FR-012, FR-013 | done     |
 | S-03 | save-load-state-file     | save system state to a file and reload it (local, no account)   | S-01                 | FR-020, FR-021                        | done     |
-| S-04 | mp3-export               | download the soundscape as MP3 (render + live capture)          | S-01                 | FR-022, FR-023                        | proposed |
+| S-04 | mp3-export               | download the soundscape as MP3 (render + live capture)          | S-01                 | FR-022, FR-023                        | done     |
 | S-09 | generative-visuals       | see a generative visual layer evolve with the sound             | S-01                 | FR-030                                | done     |
 | S-07 | environmental-signals    | have location/time (sun) + weather bias the sound               | S-01, S-02           | FR-014, FR-015                        | proposed |
 | S-08 | cat-signals              | have a cat's presence/purr/meow bias the sound                  | S-02                 | FR-016                                | blocked  |
@@ -302,6 +302,7 @@ exist and do NOT re-scaffold them.
   magic-link email until fixed `[node:e2c03bd2]`. Change summary `[node:922f9a4a]` (dormant — promote).
 - **S-02: richer nudges + cheap sensors** — Done 2026-08-02 (split across `sensor-feedback` + `nudge-surfaces`, both archived). Sensors (motion/mic/light/time…) shipped in sensor-feedback; nudge surfaces (mood presets, Stir/perturb, New-seed, X-Y pad momentum) in nudge-surfaces. Change summary `[node:a5d856de]`.
 - **S-03: save/load a local .loam file** — Archived 2026-08-03 → `context/archive/save-load-state-file/`. Versioned self-contained format; download + upload-to-reload, no account. Round-trip verified. Change summary `[node:f51de156]`.
+- **S-04: MP3 export** — Archived 2026-08-03 → `context/archive/mp3-export/`. In-browser MP3 (lamejs): reproducible OfflineAudioContext render from state + live capture. Render→MP3 verified. Change summary `[node:2a363099]`.
 - **sensor-feedback (ad-hoc, beyond the original slices)** — Archived 2026-08-02 →
   `context/archive/sensor-feedback/`. SensorHub (pointer/time/battery/viewport + permission-gated
   motion/mic/light + opt-in weather/sun via Open-Meteo) drives visuals + biases the engine, with a
