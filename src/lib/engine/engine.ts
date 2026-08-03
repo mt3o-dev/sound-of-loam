@@ -14,7 +14,7 @@ import { defaultState, type Macros, type SystemState } from './state';
 type MacroName = keyof Macros;
 
 /** Map mood 0..1 → (scale, root). Lower = darker/lower, higher = brighter/higher. */
-function moodToTonality(mood: number): { scale: ScaleName; rootMidi: number } {
+export function moodToTonality(mood: number): { scale: ScaleName; rootMidi: number } {
   if (mood < 0.34) return { scale: 'minorPentatonic', rootMidi: 46 };
   if (mood < 0.67) return { scale: 'dorian', rootMidi: 48 };
   return { scale: 'lydian', rootMidi: 50 };
@@ -27,6 +27,9 @@ export class Engine {
   private texture: Texture | null = null;
   private scheduler: LookAheadScheduler | null = null;
   private rng: Rng;
+  private captureDest: MediaStreamAudioDestinationNode | null = null;
+  private recorder: MediaRecorder | null = null;
+  private chunks: Blob[] = [];
 
   private params: Record<MacroName, OUParam>;
   private nextNoteTime = 0;
@@ -54,6 +57,9 @@ export class Engine {
     this.ctx = new AudioContext();
     if (this.ctx.state === 'suspended') await this.ctx.resume();
     this.bus = createBus(this.ctx, this.rng);
+    // Tap the master for live-session capture (FR-023); recording is opt-in.
+    this.captureDest = this.ctx.createMediaStreamDestination();
+    this.bus.master.connect(this.captureDest);
     const tonality = moodToTonality(this.params.mood.value);
     this.currentRoot = tonality.rootMidi;
     this.drone = new Drone(this.bus, tonality.rootMidi, this.rng);
@@ -79,6 +85,33 @@ export class Engine {
 
   get running(): boolean {
     return !!this.scheduler?.running;
+  }
+
+  get capturing(): boolean {
+    return this.recorder?.state === 'recording';
+  }
+
+  /** Begin capturing the live session output. Returns false if unsupported. */
+  startCapture(): boolean {
+    if (!this.captureDest || typeof MediaRecorder === 'undefined') return false;
+    this.chunks = [];
+    this.recorder = new MediaRecorder(this.captureDest.stream);
+    this.recorder.ondataavailable = (e) => {
+      if (e.data.size) this.chunks.push(e.data);
+    };
+    this.recorder.start();
+    return true;
+  }
+
+  /** Stop capturing; resolves with the recorded audio Blob (encoded, e.g. webm). */
+  stopCapture(): Promise<Blob | null> {
+    return new Promise((resolve) => {
+      const r = this.recorder;
+      if (!r) return resolve(null);
+      r.onstop = () => resolve(new Blob(this.chunks, { type: r.mimeType || 'audio/webm' }));
+      r.stop();
+      this.recorder = null;
+    });
   }
 
   /** User slider: move the mean this parameter reverts toward. */
