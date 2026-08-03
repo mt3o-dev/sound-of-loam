@@ -43,7 +43,7 @@ feel right, nothing downstream matters.
 | S-04 | mp3-export               | download the soundscape as MP3 (render + live capture)          | S-01                 | FR-022, FR-023                        | done     |
 | S-09 | generative-visuals       | see a generative visual layer evolve with the sound             | S-01                 | FR-030                                | done     |
 | S-07 | environmental-signals    | have location/time (sun) + weather bias the sound               | S-01, S-02           | FR-014, FR-015                        | proposed |
-| S-08 | cat-signals              | have a cat's presence/purr/meow bias the sound                  | S-02                 | FR-016                                | blocked  |
+| S-08 | cat-signals              | have a cat's presence/purr/meow bias the sound                  | S-02                 | FR-016                                | proposed |
 | F-01 | persistence-backend      | (foundation) app can read/write persistent storage (Cloudflare D1) | —                | Access Control, NFR (self-contained file) | done     |
 | F-02 | email-auth               | (foundation) email login + sessions in place                    | F-01                 | FR-024, Access Control                | done     |
 | S-05 | accounts-and-cloud-save  | sign in via email and save/own tracks in an account             | F-01, F-02           | FR-024, FR-020                        | done     |
